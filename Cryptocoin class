@@ -1,0 +1,92 @@
+#include <iostream>
+#include <string>
+#include <unordered_map>
+
+class Cryptocoins {
+public:
+    Cryptocoins() {}
+
+    bool addCoin(const std::string& name, double price, int supply) {
+        if (prices_.count(name) > 0 || price < 0 || supply < 0) {
+            return false;
+        }
+
+        prices_[name] = price;
+        supplies_[name] = supply;
+        return true;
+    }
+
+    bool removeCoin(const std::string& name) {
+        if (prices_.erase(name) == 0 || supplies_.erase(name) == 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool buyCoins(const std::string& name, int amount, double& totalPrice) {
+        if (prices_.count(name) == 0 || supplies_[name] < amount) {
+            return false;
+        }
+
+        supplies_[name] -= amount;
+        totalPrice = prices_[name] * amount;
+        return true;
+    }
+
+    bool sellCoins(const std::string& name, int amount, double& totalRevenue) {
+        if (prices_.count(name) == 0) {
+            return false;
+        }
+
+        int maxAmount = supplies_[name];
+        if (amount > maxAmount) {
+            amount = maxAmount;
+        }
+
+        supplies_[name] -= amount;
+        totalRevenue = prices_[name] * amount;
+        return true;
+    }
+
+    bool transferCoins(const std::string& from, const std::string& to, int amount) {
+        if (prices_.count(from) == 0 || prices_.count(to) == 0 || supplies_[from] < amount) {
+            return false;
+        }
+
+        supplies_[from] -= amount;
+        supplies_[to] += amount;
+        return true;
+    }
+
+    double getCoinPrice(const std::string& name) const {
+        if (prices_.count(name) == 0) {
+            return -1;
+        }
+
+        return prices_.at(name);
+    }
+
+    int getCoinSupply(const std::string& name) const {
+        if (supplies_.count(name) == 0) {
+            return -1;
+        }
+
+        return supplies_.at(name);
+    }
+
+    double getPortfolioValue(const std::unordered_map<std::string, int>& holdings) const {
+        double value = 0;
+        for (const auto& [name, amount] : holdings) {
+            if (prices_.count(name) > 0) {
+                value += prices_.at(name) * amount;
+            }
+        }
+
+        return value;
+    }
+
+private:
+    std::unordered_map<std::string, double> prices_;
+    std::unordered_map<std::string, int> supplies_;
+};
